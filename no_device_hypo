@@ -1,0 +1,59 @@
+-- Temp table 1 for users that have an allocation_id with only 1 device
+-- We can see that the amount of user with allocation_id using only mobile or tablet is very small compared to using desktop
+with temp1 as (select tc.u_identity, count(tc.event_id) as number_of_logged_in, count(distinct tc.device_type)
+               from marketing.tracking_concept tc
+                        left join tableau.platform_details pd on tc.u_identity = pd.moonfaretrackingnumber
+                        left join tableau.mgmt_dash md on pd.user_id = md.userid
+               where u_identity is not null
+                 and allocation_id is not null
+               group by u_identity
+               having count(distinct tc.device_type) = 1)
+select count(distinct temp1.u_identity)
+from temp1
+    left join marketing.tracking_concept tc on temp1.u_identity = tc.u_identity
+where tc.device_type in ('Mobile', 'Tablet')
+
+
+with temp1 as (select tc.u_identity, count(tc.event_id) as number_of_logged_in, count(distinct tc.device_type)
+               from marketing.tracking_concept tc
+                        left join tableau.platform_details pd on tc.u_identity = pd.moonfaretrackingnumber
+                        left join tableau.mgmt_dash md on pd.user_id = md.userid
+               where u_identity is not null
+                 and allocation_id is not null
+               group by u_identity
+               having count(distinct tc.device_type) = 1)
+select count(distinct temp1.u_identity)
+from temp1
+    left join marketing.tracking_concept tc on temp1.u_identity = tc.u_identity
+where tc.device_type like 'Desktop'
+
+--Non investors
+with temp2 as (select tc.u_identity, count(tc.event_id) as number_of_logged_in, count(distinct tc.device_type)
+               from marketing.tracking_concept tc
+                        left join tableau.platform_details pd on tc.u_identity = pd.moonfaretrackingnumber
+                        left join tableau.mgmt_dash md on pd.user_id = md.userid
+               where u_identity is not null
+                 and allocation_id is null
+               group by u_identity
+               having count(distinct tc.device_type) = 1)
+select count(distinct temp2.u_identity)
+from temp2
+    left join marketing.tracking_concept tc on temp2.u_identity = tc.u_identity
+where tc.device_type like 'Desktop'
+
+-- More than 1 devices
+
+with temp3 as (select tc.u_identity, count(tc.event_id) as number_of_logged_in, count(distinct tc.device_type)
+               from marketing.tracking_concept tc
+                        left join tableau.platform_details pd on tc.u_identity = pd.moonfaretrackingnumber
+                        left join tableau.mgmt_dash md on pd.user_id = md.userid
+               where u_identity is not null
+                 and allocation_id is null
+               group by u_identity
+               having count(distinct tc.device_type) <> 1)
+select count(distinct temp3.u_identity)
+from temp3
+
+-- Conclusion: Users that are using more than 1 devices are at higher chances of investing, of 31%
+-- Users that are using only 1 device only 2,5%
+-- In those users, the amount of investors using only mobile/ tablet are very low, compared to desktop users.
